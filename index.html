@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Create Account - Bluesky</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: #0f1724;
+    color: #fff;
+    min-height: 100vh;
+    display: flex;
+  }
+
+  .layout { display: flex; width: 100%; min-height: 100vh; }
+
+  .left-panel {
+    flex: 0 0 42%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 3rem;
+    background: #0f1724;
+  }
+
+  .left-panel h1 {
+    font-size: 3.8rem;
+    font-weight: 800;
+    color: #0085ff;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    margin-bottom: 0.75rem;
+  }
+
+  .left-panel p { font-size: 1.1rem; color: #7b8da6; }
+
+  .right-panel {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 3rem 4rem;
+    background: #162030;
+    overflow-y: auto;
+  }
+
+  .form-container { width: 100%; max-width: 480px; padding-top: 2rem; }
+  .step-label { font-size: 0.85rem; color: #7b8da6; margin-bottom: 0.25rem; }
+
+  .form-title {
+    font-size: 1.6rem;
+    font-weight: 700;
+    margin-bottom: 2rem;
+  }
+
+  .hosting-note { font-size: 0.9rem; color: #7b8da6; margin-bottom: 1.75rem; }
+  .hosting-note strong { color: #c0cfe0; font-weight: 500; }
+  .field-group { margin-bottom: 1.25rem; }
+  .field-label { display: block; font-size: 0.85rem; color: #c0cfe0; margin-bottom: 0.4rem; font-weight: 500; }
+
+  .input-wrapper { position: relative; display: flex; align-items: center; }
+
+  .input-icon {
+    position: absolute; left: 14px; color: #4a5e78;
+    font-size: 1rem; pointer-events: none; display: flex; align-items: center;
+  }
+
+  .input-wrapper input {
+    width: 100%;
+    padding: 0.75rem 0.75rem 0.75rem 2.75rem;
+    background: #1a2a3e;
+    border: 1.5px solid #2a3e56;
+    border-radius: 10px;
+    color: #fff;
+    font-size: 0.95rem;
+    font-family: inherit;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    outline: none;
+  }
+
+  .input-wrapper input:focus {
+    border-color: #0085ff;
+    box-shadow: 0 0 0 3px rgba(0, 133, 255, 0.15);
+  }
+
+  .input-wrapper input::placeholder { color: #4a5e78; }
+
+  .toggle-vis {
+    position: absolute; right: 12px; background: none; border: none;
+    color: #4a5e78; cursor: pointer; font-size: 1.1rem; padding: 4px;
+    display: flex; align-items: center; transition: color 0.15s;
+  }
+  .toggle-vis:hover { color: #7b8da6; }
+
+  /* Minimum length warning */
+  .min-length-warning {
+    display: none;
+    margin-top: 0.5rem;
+    font-size: 0.82rem;
+    color: #e74c3c;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .min-length-warning.show { display: flex; }
+
+  /* Strength bar */
+  .strength-section {
+    margin-top: 0.75rem;
+    display: none;
+  }
+  .strength-section.show { display: block; }
+
+  .strength-bar-track {
+    height: 4px;
+    background: #1a2a3e;
+    border-radius: 2px;
+    overflow: hidden;
+    display: flex;
+    gap: 3px;
+  }
+
+  .strength-bar-segment {
+    flex: 1;
+    height: 100%;
+    border-radius: 2px;
+    background: #253548;
+    transition: background 0.3s;
+  }
+
+  .strength-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 0.5rem;
+  }
+
+  .strength-label {
+    font-size: 0.82rem;
+    font-weight: 600;
+    transition: color 0.3s;
+  }
+
+  .strength-feedback {
+    font-size: 0.78rem;
+    color: #5a6f88;
+    text-align: right;
+    max-width: 70%;
+  }
+
+  .strength-crack-time {
+    font-size: 0.75rem;
+    color: #4a5e78;
+    margin-top: 0.25rem;
+  }
+
+  /* Strength colors */
+  .str-0 { color: #e74c3c; }
+  .str-1 { color: #e67e22; }
+  .str-2 { color: #f1c40f; }
+  .str-3 { color: #2ecc71; }
+  .str-4 { color: #27ae60; }
+
+  .seg-0 { background: #e74c3c; }
+  .seg-1 { background: #e67e22; }
+  .seg-2 { background: #f1c40f; }
+  .seg-3 { background: #2ecc71; }
+  .seg-4 { background: #27ae60; }
+
+  /* Breach check */
+  .breach-section { margin-top: 1rem; }
+
+  .breach-btn {
+    width: 100%;
+    padding: 0.7rem 1rem;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border: none;
+  }
+
+  .breach-btn.ready {
+    background: #1a3a5c; color: #5aadff; border: 1.5px solid #2a4e70;
+  }
+  .breach-btn.ready:hover { background: #1e4268; border-color: #3a6090; }
+
+  .breach-btn.disabled {
+    background: #1a2536; color: #3a4e66; border: 1.5px solid #253548;
+    cursor: not-allowed; pointer-events: none;
+  }
+
+  .breach-btn.checking {
+    background: #1a3a5c; color: #5aadff; border: 1.5px solid #2a4e70; cursor: wait;
+  }
+
+  .breach-result {
+    margin-top: 0.75rem;
+    padding: 0.85rem 1rem;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    line-height: 1.5;
+    display: none;
+    align-items: flex-start;
+    gap: 0.6rem;
+    animation: fadeSlide 0.3s ease;
+  }
+
+  @keyframes fadeSlide {
+    from { opacity: 0; transform: translateY(-6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .breach-result.safe {
+    display: flex;
+    background: rgba(46, 204, 113, 0.1);
+    border: 1px solid rgba(46, 204, 113, 0.25);
+    color: #2ecc71;
+  }
+
+  .breach-result.breached {
+    display: flex;
+    background: rgba(231, 76, 60, 0.1);
+    border: 1px solid rgba(231, 76, 60, 0.25);
+    color: #e74c3c;
+  }
+
+  .breach-result .result-icon { font-size: 1.2rem; flex-shrink: 0; margin-top: 1px; }
+  .breach-result .result-text strong { display: block; margin-bottom: 2px; font-weight: 600; }
+  .breach-count { font-size: 0.78rem; opacity: 0.8; margin-top: 2px; }
+
+  .privacy-note {
+    margin-top: 0.6rem; font-size: 0.75rem; color: #3e556e; line-height: 1.5;
+  }
+  .privacy-note a { color: #4a7fad; text-decoration: none; }
+
+  .input-wrapper input[type="date"] { color-scheme: dark; }
+
+  .tos { font-size: 0.85rem; color: #7b8da6; margin: 1.75rem 0 1.5rem; line-height: 1.5; }
+  .tos a { color: #0085ff; text-decoration: none; }
+
+  .btn-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+
+  .btn-back {
+    padding: 0.65rem 1.5rem; border-radius: 20px; background: #1a2a3e;
+    border: 1.5px solid #2a3e56; color: #c0cfe0; font-size: 0.9rem;
+    font-weight: 600; font-family: inherit; cursor: pointer; transition: all 0.15s;
+  }
+  .btn-back:hover { background: #1e3248; border-color: #3a5570; }
+
+  .btn-next {
+    padding: 0.65rem 2rem; border-radius: 20px; background: #0085ff;
+    border: none; color: #fff; font-size: 0.9rem; font-weight: 600;
+    font-family: inherit; cursor: pointer; transition: all 0.15s;
+  }
+  .btn-next:hover { background: #0074e0; }
+
+  .form-footer {
+    display: flex; align-items: center; gap: 1.5rem;
+    font-size: 0.85rem; color: #5a6f88; padding-bottom: 2rem;
+  }
+  .form-footer a { color: #0085ff; text-decoration: none; }
+
+  .spinner {
+    width: 16px; height: 16px;
+    border: 2px solid rgba(90, 173, 255, 0.3);
+    border-top-color: #5aadff;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  @media (max-width: 900px) {
+    .layout { flex-direction: column; }
+    .left-panel { flex: none; padding: 2rem; text-align: center; }
+    .left-panel h1 { font-size: 2.5rem; }
+    .right-panel { padding: 2rem; }
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+  <div class="left-panel">
+    <div>
+      <h1>Create<br>Account</h1>
+      <p>We're so excited to have you join us!</p>
+    </div>
+  </div>
+
+  <div class="right-panel">
+    <div class="form-container">
+      <div class="step-label">Step 1 of 3</div>
+      <h2 class="form-title">Your account</h2>
+      <p class="hosting-note">You are creating an account on <strong>Bluesky Social</strong></p>
+
+      <div class="field-group">
+        <label class="field-label">Email</label>
+        <div class="input-wrapper">
+          <span class="input-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 7l-10 7L2 7"/></svg>
+          </span>
+          <input type="email" placeholder="Enter your email address">
+        </div>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label">Password</label>
+        <div class="input-wrapper">
+          <span class="input-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+          </span>
+          <input type="password" id="pw" placeholder="Choose your password" autocomplete="new-password">
+          <button class="toggle-vis" id="toggleVis" type="button" aria-label="Toggle password visibility">
+            <svg id="eyeOff" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+            <svg id="eyeOn" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+
+        <div class="min-length-warning" id="minLenWarn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <span>Password must be at least 8 characters</span>
+        </div>
+
+        <div class="strength-section" id="strengthSection">
+          <div class="strength-bar-track">
+            <div class="strength-bar-segment" id="seg0"></div>
+            <div class="strength-bar-segment" id="seg1"></div>
+            <div class="strength-bar-segment" id="seg2"></div>
+            <div class="strength-bar-segment" id="seg3"></div>
+          </div>
+          <div class="strength-info">
+            <span class="strength-label" id="strengthLabel"></span>
+            <span class="strength-feedback" id="strengthFeedback"></span>
+          </div>
+          <div class="strength-crack-time" id="crackTime"></div>
+        </div>
+
+        <div class="breach-section">
+          <button class="breach-btn disabled" id="breachBtn" type="button">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            Check password health
+          </button>
+          <div class="breach-result" id="breachResult">
+            <span class="result-icon"></span>
+            <div class="result-text"></div>
+          </div>
+          <div class="privacy-note">
+            Your password is never sent over the network. We use
+            <a href="https://www.troyhunt.com/ive-just-launched-pwned-passwords-version-2/#702702f0-cf7a-4e9c-93a4-e15aac95bc94" target="_blank" rel="noopener">k-anonymity</a>
+            to check it privately against Have I Been Pwned's database.
+          </div>
+        </div>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label">Your birth date</label>
+        <div class="input-wrapper">
+          <span class="input-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          </span>
+          <input type="date" value="2006-04-20">
+        </div>
+      </div>
+
+      <p class="tos">By creating an account you agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>.</p>
+
+      <div class="btn-row">
+        <button class="btn-back" type="button">Back</button>
+        <button class="btn-next" type="button">Next</button>
+      </div>
+
+      <div class="form-footer">
+        <span>English</span>
+        <span>Having trouble? <a href="#">Contact support</a></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/zxcvbn/4.4.2/zxcvbn.js"></script>
+<script>
+const pw = document.getElementById('pw');
+const minLenWarn = document.getElementById('minLenWarn');
+const strengthSection = document.getElementById('strengthSection');
+const strengthLabel = document.getElementById('strengthLabel');
+const strengthFeedback = document.getElementById('strengthFeedback');
+const crackTime = document.getElementById('crackTime');
+const breachBtn = document.getElementById('breachBtn');
+const breachResult = document.getElementById('breachResult');
+const toggleVis = document.getElementById('toggleVis');
+const eyeOff = document.getElementById('eyeOff');
+const eyeOn = document.getElementById('eyeOn');
+
+const segments = [
+  document.getElementById('seg0'),
+  document.getElementById('seg1'),
+  document.getElementById('seg2'),
+  document.getElementById('seg3'),
+];
+
+const strengthLabels = [
+  'Very weak',
+  'Weak',
+  'Fair',
+  'Strong',
+  'Very strong'
+];
+
+const shieldSvg = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>';
+
+function updatePassword() {
+  const val = pw.value;
+
+  breachResult.className = 'breach-result';
+  breachResult.style.display = 'none';
+
+  if (val.length === 0) {
+    minLenWarn.classList.remove('show');
+    strengthSection.classList.remove('show');
+    breachBtn.className = 'breach-btn disabled';
+    return;
+  }
+
+  if (val.length > 0 && val.length < 8) {
+    minLenWarn.classList.add('show');
+    strengthSection.classList.remove('show');
+    breachBtn.className = 'breach-btn disabled';
+    return;
+  }
+
+  minLenWarn.classList.remove('show');
+  strengthSection.classList.add('show');
+  breachBtn.className = 'breach-btn ready';
+
+  const result = zxcvbn(val);
+  const score = result.score;
+
+  segments.forEach((seg, i) => {
+    seg.className = 'strength-bar-segment';
+    if (i <= score) {
+      seg.classList.add('seg-' + score);
+    }
+  });
+
+  strengthLabel.className = 'strength-label str-' + score;
+  strengthLabel.textContent = strengthLabels[score];
+
+  let feedback = '';
+  if (result.feedback.warning) {
+    feedback = result.feedback.warning;
+  } else if (result.feedback.suggestions && result.feedback.suggestions.length > 0) {
+    feedback = result.feedback.suggestions[0];
+  }
+  strengthFeedback.textContent = feedback;
+
+  const ct = result.crack_times_display
+    ? result.crack_times_display.offline_slow_hashing_1e4_per_second
+    : result.crack_time_display;
+  crackTime.textContent = ct ? 'Estimated crack time: ' + ct : '';
+}
+
+pw.addEventListener('input', () => {
+  pw.value = pw.value.replace(/ /g, '');
+  updatePassword();
+});
+
+pw.addEventListener('keydown', (e) => {
+  if (e.key === ' ') e.preventDefault();
+});
+
+toggleVis.addEventListener('click', () => {
+  const isPassword = pw.type === 'password';
+  pw.type = isPassword ? 'text' : 'password';
+  eyeOff.style.display = isPassword ? 'none' : 'block';
+  eyeOn.style.display = isPassword ? 'block' : 'none';
+});
+
+async function sha1(str) {
+  const buf = await crypto.subtle.digest('SHA-1', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('').toUpperCase();
+}
+
+breachBtn.addEventListener('click', async () => {
+  if (breachBtn.classList.contains('disabled')) return;
+
+  breachBtn.className = 'breach-btn checking';
+  breachBtn.innerHTML = '<div class="spinner"></div> Checking...';
+  breachResult.style.display = 'none';
+  breachResult.className = 'breach-result';
+
+  try {
+    const hash = await sha1(pw.value);
+    const prefix = hash.slice(0, 5);
+    const suffix = hash.slice(5);
+
+    const resp = await fetch('https://api.pwnedpasswords.com/range/' + prefix, {
+      headers: { 'Add-Padding': 'true' }
+    });
+    const text = await resp.text();
+
+    let found = false;
+    let count = 0;
+
+    for (const line of text.split('\n')) {
+      const parts = line.trim().split(':');
+      if (parts[0] === suffix) {
+        found = true;
+        count = parseInt(parts[1], 10);
+        break;
+      }
+    }
+
+    if (found) {
+      breachResult.className = 'breach-result breached';
+      breachResult.style.display = 'flex';
+      breachResult.querySelector('.result-icon').textContent = '\u2717';
+      breachResult.querySelector('.result-text').innerHTML =
+        '<strong>This password has appeared in a data breach</strong>' +
+        'Choose a different password to keep your account secure.' +
+        '<div class="breach-count">This password has been seen ' + count.toLocaleString() + ' times in breach data.</div>';
+    } else {
+      breachResult.className = 'breach-result safe';
+      breachResult.style.display = 'flex';
+      breachResult.querySelector('.result-icon').textContent = '\u2713';
+      breachResult.querySelector('.result-text').innerHTML =
+        '<strong>Not found in any known breach</strong>' +
+        'This password has not been identified in any publicly disclosed data breach.';
+    }
+  } catch (err) {
+    breachResult.className = 'breach-result breached';
+    breachResult.style.display = 'flex';
+    breachResult.querySelector('.result-icon').textContent = '!';
+    breachResult.querySelector('.result-text').innerHTML =
+      '<strong>Unable to check</strong>' +
+      'Could not reach the breach database. Please try again.';
+  }
+
+  breachBtn.className = 'breach-btn ready';
+  breachBtn.innerHTML = shieldSvg + ' Check password health';
+});
+</script>
+</body>
+</html>
